@@ -46,22 +46,6 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             _logger = Log.ForContext<ThailandpostTrackingServices>();
         }
 
-        public async Task<GetRequestItemsResponseDTO> GetRequestItems(GetItemsbyBarcodeRequestDTO input)
-        {
-            var token = await GetToken();
-
-            while (_client.DefaultParameters.Any(p => p.Name == "Authorization"))
-                _client.DefaultParameters.RemoveParameter(_client.DefaultParameters.First(p => p.Name == "Authorization"));
-
-            _client.AddDefaultHeader("Authorization", "Token " + token);
-
-            var req = new RestRequest("https://trackapi.thailandpost.co.th/post/api/v1/track/batch");
-            req.AddBody(input);
-            var response = await Task.FromResult(_client.Post<GetRequestItemsResponseDTO>(req));
-
-            return response;
-        }
-
         public async Task<GetItemsbyBarcodeResponseDTO> InsertTracking(GetItemsbyBarcodeRequestDTO input)
         {
             var response = await GetItemsbyBarcode(input);
@@ -422,7 +406,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         {
             try
             {
-                var data = _dbContext.TrackingHeaders.AsQueryable();
+                var data = _dbContext.TrackingHeaders.OrderByDescending(x => x.UpdatedDate).AsQueryable();
                 if (!string.IsNullOrWhiteSpace(filter.TrackingCode))
                 {
                     data = data.Where(x => x.TrackingCode == filter.TrackingCode);
@@ -457,39 +441,16 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             }
         }
 
-        public async Task<ServiceResponseWithPagination<List<GetTrackingDetailResponseDTO>>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
+        public async Task<List<GetTrackingDetailResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
         {
-            try
-            {
-                var data = _dbContext.TrackingDetails.Where(x => x.TrackingHeaderId == filter.TrackingHeaderId && x.TrackingBatchId == filter.TrackingBatchId && x.IsActive == true).OrderBy(_ => _.Status_Date).AsQueryable();
+            var data = _dbContext.TrackingDetails.Where(x => x.TrackingHeaderId == filter.TrackingHeaderId
+                                                          && x.TrackingBatchId == filter.TrackingBatchId
+                                                          && x.IsActive == true)
+                                                 .OrderByDescending(_ => _.Status_Date).AsQueryable();
+            //mapping dto response
+            var dtoOutput = _mapper.Map<List<GetTrackingDetailResponseDTO>>(data);
 
-                //Ordering
-                if (!string.IsNullOrWhiteSpace(filter.OrderingField))
-                {
-                    try
-                    {
-                        data = data.OrderBy($"{filter.OrderingField} {(filter.AscendingOrder ? "ascending" : "descending")}");
-                    }
-                    catch (Exception e)
-                    {
-                        return ResponseResultWithPagination.Failure<List<GetTrackingDetailResponseDTO>>($"Could not order by field: {filter.OrderingField}");
-                    }
-                }
-
-                //Pagination
-                var paginationResult = await _httpContext.HttpContext.InsertPaginationParametersInResponse(data, filter.RecordsPerPage, filter.Page);
-                var dto = await data.Paginate(filter).ToListAsync();
-
-                //mapping dto response
-                var dtoOutput = _mapper.Map<List<GetTrackingDetailResponseDTO>>(dto);
-
-                return ResponseResultWithPagination.Success(dtoOutput, paginationResult, "Success");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.Message, "[GetTrackingDetail] - An error occurred");
-                return ResponseResultWithPagination.Failure<List<GetTrackingDetailResponseDTO>>(ex.Message);
-            }
+            return dtoOutput;
         }
     }
 }
