@@ -1,18 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using ThailandpostTracking.Models;
 
 namespace ThailandpostTracking.DTOs.Thailandpost.Response
 {
-    public class GetTrackingHeaderResponseDTO
+    public class GetTrackingDetailResponseDTO
     {
-        public Guid TrackingHeaderId { get; set; }
+        public Guid TrackingDetailId { get; set; }
+        public Guid? TrackingHeaderId { get; set; }
         public Guid? TrackingBatchId { get; set; }
-        public Guid? TmpImportTrackingId { get; set; }
-
-        public string TrackingCode { get; set; }
-
-        public string ReferenceCode { get; set; }
 
         public string Status { get; set; }
 
@@ -41,6 +36,7 @@ namespace ThailandpostTracking.DTOs.Thailandpost.Response
         public string Office_Tel { get; set; }
 
         public string Call_Center_Tel { get; set; }
+
         public DateTime? UpdatedDate { get; set; }
         public int? UpdatedByUserId { get; set; }
     }

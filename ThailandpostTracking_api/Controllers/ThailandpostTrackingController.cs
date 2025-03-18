@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ThailandpostTracking.Attributes;
 using ThailandpostTracking.DTOs.Thailandpost.Request;
 using ThailandpostTracking.DTOs.Thailandpost.Response;
 using ThailandpostTracking.Models;
@@ -57,6 +58,20 @@ namespace ThailandpostTracking.Controllers
             {
                 return ResponseResult.Failure<GetRequestItemsResponseDTO>(e.Message);
             }
+        }
+
+        [HttpGet("gettrackingheader/filter")]
+        public async Task<IActionResult> GetTrackingHeader([FromQuery] GetTrackingHeaderRequestDTO param)
+        {
+            var data = await _services.GetTrackingHeader(param);
+            return Ok(data);
+        }
+
+        [HttpGet("gettrackingdetail/filter")]
+        public async Task<IActionResult> GetTrackingDetail([FromQuery] GetTrackingDetailRequestDTO param)
+        {
+            var data = await _services.GetTrackingDetail(param);
+            return Ok(data);
         }
     }
 }

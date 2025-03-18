@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Confluent.Kafka;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using Serilog;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Reflection;
 using System.Security.Cryptography.Xml;
 using System.Text;
@@ -18,6 +20,7 @@ using ThailandpostTracking.Configurations;
 using ThailandpostTracking.Data;
 using ThailandpostTracking.DTOs.Thailandpost.Request;
 using ThailandpostTracking.DTOs.Thailandpost.Response;
+using ThailandpostTracking.Helpers;
 using ThailandpostTracking.Models;
 using ThailandpostTracking.Services.Auth;
 using ILogger = Serilog.ILogger;
@@ -30,14 +33,16 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         private readonly ThailandpostTrackingSetting _configuration;
         private readonly AppDBContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContext;
         private readonly ILogger _logger;
 
-        public ThailandpostTrackingServices(IOptions<ThailandpostTrackingSetting> configuration, AppDBContext dbContext, IMapper mapper)
+        public ThailandpostTrackingServices(IOptions<ThailandpostTrackingSetting> configuration, AppDBContext dbContext, IMapper mapper, IHttpContextAccessor httpContext)
         {
             _client = new RestClient();
             _configuration = configuration.Value;
             _dbContext = dbContext;
             _mapper = mapper;
+            _httpContext = httpContext;
             _logger = Log.ForContext<ThailandpostTrackingServices>();
         }
 
@@ -270,7 +275,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             _client.AddDefaultHeader("Content-Type", "application/json");
 
             var req = new RestRequest(_configuration.GetTokenEnpoint);
-            var response = await Task.FromResult(_client.Post<ThailandpostTrackingGedTokenResponseDTO>(req));
+            var response = await Task.FromResult(_client.Post<ThailandpostTrackingGetTokenResponseDTO>(req));
 
             var token = response?.token;
             return token;
@@ -410,6 +415,80 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             catch
             {
                 return DateTime.MinValue; // Fallback for errors
+            }
+        }
+
+        public async Task<ServiceResponseWithPagination<List<GetTrackingHeaderResponseDTO>>> GetTrackingHeader(GetTrackingHeaderRequestDTO filter)
+        {
+            try
+            {
+                var data = _dbContext.TrackingHeaders.AsQueryable();
+                if (!string.IsNullOrWhiteSpace(filter.TrackingCode))
+                {
+                    data = data.Where(x => x.TrackingCode == filter.TrackingCode);
+                }
+
+                //Ordering
+                if (!string.IsNullOrWhiteSpace(filter.OrderingField))
+                {
+                    try
+                    {
+                        data = data.OrderBy($"{filter.OrderingField} {(filter.AscendingOrder ? "ascending" : "descending")}");
+                    }
+                    catch (Exception e)
+                    {
+                        return ResponseResultWithPagination.Failure<List<GetTrackingHeaderResponseDTO>>($"Could not order by field: {filter.OrderingField}");
+                    }
+                }
+
+                //Pagination
+                var paginationResult = await _httpContext.HttpContext.InsertPaginationParametersInResponse(data, filter.RecordsPerPage, filter.Page);
+                var dto = await data.Paginate(filter).ToListAsync();
+
+                //mapping dto response
+                var dtoOutput = _mapper.Map<List<GetTrackingHeaderResponseDTO>>(dto);
+
+                return ResponseResultWithPagination.Success(dtoOutput, paginationResult, "Success");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message, "[GetTrackingHeader] - An error occurred");
+                return ResponseResultWithPagination.Failure<List<GetTrackingHeaderResponseDTO>>(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResponseWithPagination<List<GetTrackingDetailResponseDTO>>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
+        {
+            try
+            {
+                var data = _dbContext.TrackingDetails.Where(x => x.TrackingHeaderId == filter.TrackingHeaderId && x.TrackingBatchId == filter.TrackingBatchId && x.IsActive == true).OrderBy(_ => _.Status_Date).AsQueryable();
+
+                //Ordering
+                if (!string.IsNullOrWhiteSpace(filter.OrderingField))
+                {
+                    try
+                    {
+                        data = data.OrderBy($"{filter.OrderingField} {(filter.AscendingOrder ? "ascending" : "descending")}");
+                    }
+                    catch (Exception e)
+                    {
+                        return ResponseResultWithPagination.Failure<List<GetTrackingDetailResponseDTO>>($"Could not order by field: {filter.OrderingField}");
+                    }
+                }
+
+                //Pagination
+                var paginationResult = await _httpContext.HttpContext.InsertPaginationParametersInResponse(data, filter.RecordsPerPage, filter.Page);
+                var dto = await data.Paginate(filter).ToListAsync();
+
+                //mapping dto response
+                var dtoOutput = _mapper.Map<List<GetTrackingDetailResponseDTO>>(dto);
+
+                return ResponseResultWithPagination.Success(dtoOutput, paginationResult, "Success");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message, "[GetTrackingDetail] - An error occurred");
+                return ResponseResultWithPagination.Failure<List<GetTrackingDetailResponseDTO>>(ex.Message);
             }
         }
     }

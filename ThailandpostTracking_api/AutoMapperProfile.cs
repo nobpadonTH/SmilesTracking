@@ -9,6 +9,8 @@ namespace ThailandpostTracking
         public AutoMapperProfile()
         {
             CreateMap<TrackingItem, TrackingDetail>();
+            CreateMap<TrackingHeader, GetTrackingHeaderResponseDTO>();
+            CreateMap<TrackingDetail, GetTrackingDetailResponseDTO>();
         }
     }
 }

@@ -27,7 +27,7 @@ namespace ThailandpostTracking.HostedServices
                 Barcode = tmpImportTrackings.Select(x => x.TrackingCode).ToList()
             };
             Log.Information("TrackingUpsertJob Start");
-            await _services.UpsertTracking(input);
+            //await _services.UpsertTracking(input);
             Log.Information("TrackingUpsertJob Successfully");
         }
     }

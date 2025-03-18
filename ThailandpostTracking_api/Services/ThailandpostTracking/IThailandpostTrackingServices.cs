@@ -16,5 +16,9 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         Task<GetItemsbyBarcodeResponseDTO> UpsertTracking(GetItemsbyBarcodeRequestDTO input);
 
         Task<GetRequestItemsResponseDTO> GetRequestItems(GetItemsbyBarcodeRequestDTO input);
+
+        Task<ServiceResponseWithPagination<List<GetTrackingHeaderResponseDTO>>> GetTrackingHeader(GetTrackingHeaderRequestDTO input);
+
+        Task<ServiceResponseWithPagination<List<GetTrackingDetailResponseDTO>>> GetTrackingDetail(GetTrackingDetailRequestDTO filter);
     }
 }
