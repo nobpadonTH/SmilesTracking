@@ -46,20 +46,6 @@ namespace ThailandpostTracking.Controllers
             }
         }
 
-        [HttpPost("getrequestitems")]
-        public async Task<ServiceResponse<GetRequestItemsResponseDTO>> GetRequestItems([FromBody] GetItemsbyBarcodeRequestDTO input)
-        {
-            try
-            {
-                var result = await _services.GetRequestItems(input);
-                return ResponseResult.Success(result, "Success");
-            }
-            catch (Exception e)
-            {
-                return ResponseResult.Failure<GetRequestItemsResponseDTO>(e.Message);
-            }
-        }
-
         [HttpGet("gettrackingheader/filter")]
         public async Task<IActionResult> GetTrackingHeader([FromQuery] GetTrackingHeaderRequestDTO param)
         {
@@ -68,10 +54,17 @@ namespace ThailandpostTracking.Controllers
         }
 
         [HttpGet("gettrackingdetail/filter")]
-        public async Task<IActionResult> GetTrackingDetail([FromQuery] GetTrackingDetailRequestDTO param)
+        public async Task<ServiceResponse<List<GetTrackingDetailResponseDTO>>> GetTrackingDetail([FromQuery] GetTrackingDetailRequestDTO param)
         {
-            var data = await _services.GetTrackingDetail(param);
-            return Ok(data);
+            try
+            {
+                var data = await _services.GetTrackingDetail(param);
+                return ResponseResult.Success(data, "Success");
+            }
+            catch (Exception e)
+            {
+                return ResponseResult.Failure<List<GetTrackingDetailResponseDTO>>(e.Message);
+            }
         }
     }
 }
