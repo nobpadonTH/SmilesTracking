@@ -1,28 +1,18 @@
 ﻿using AutoMapper;
-using Confluent.Kafka;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using Serilog;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Dynamic.Core;
-using System.Reflection;
-using System.Security.Cryptography.Xml;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using ThailandpostTracking.Configurations;
 using ThailandpostTracking.Data;
 using ThailandpostTracking.DTOs.Thailandpost.Request;
 using ThailandpostTracking.DTOs.Thailandpost.Response;
 using ThailandpostTracking.Helpers;
 using ThailandpostTracking.Models;
-using ThailandpostTracking.Services.Auth;
+using ThailandpostTracking.Services.ThailandpostTracking.Report;
 using ILogger = Serilog.ILogger;
 
 namespace ThailandpostTracking.Services.ThailandpostTracking
@@ -35,6 +25,28 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContext;
         private readonly ILogger _logger;
+
+        private readonly List<string> _trackingInfo = new List<string>
+        {
+            "TrackingCode",
+            "ReferenceCode",
+            "Status",
+            "Status_Description",
+            "Status_Date",
+            "StatusDetail",
+            "Location",
+            "Postcode",
+            "Delivery_Status",
+            "Delivery_Description",
+            "Delivery_Datetime",
+            "Receiver_Name",
+            "Signature",
+            "Delivery_Officer_Name",
+            "Delivery_Officer_Tel",
+            "Office_Name",
+            "Office_Tel",
+            "Call_Center_Tel"
+        };
 
         public ThailandpostTrackingServices(IOptions<ThailandpostTrackingSetting> configuration, AppDBContext dbContext, IMapper mapper, IHttpContextAccessor httpContext)
         {
@@ -452,6 +464,44 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             var dtoOutput = _mapper.Map<List<GetTrackingDetailResponseDTO>>(data);
 
             return dtoOutput;
+        }
+
+        public async Task<ServiceResponse<ReportReponseDto>> GetReportTracking()
+        {
+            try
+            {
+                _logger.Information("[ReportTracking]- Start Date: {Date} Procedures.usp_ReportTracking_SelectAsync");
+
+                var result = await _dbContext.Procedures.usp_ReportTracking_SelectAsync();
+
+                if (result.Count == 0)
+                {
+                    throw new Exception("ไม่พบข้อมูล");
+                }
+
+                var dtoOut = _mapper.Map<List<usp_ReportTracking_SelectResult>>(result);
+
+                string fileName = $"รายTracking_{DateTime.Now:ddMMyyyy_HHmmss}.xlsx";
+
+                var excelService = new NPOIExcelExportService();
+
+                excelService.AddSheetHeader(dtoOut, "รายชื่อที่นำเข้าไม่สำเร็จ", _trackingInfo);
+
+                var response = new ReportReponseDto
+                {
+                    Data = excelService.GetFile(),
+                    IsResult = true,
+                    Message = "Success",
+                    FileName = fileName,
+                };
+
+                return ResponseResult.Success(response, "Success");
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "[ReportTracking] - An error occurred , {Msg}", e.Message);
+                return ResponseResult.Failure<ReportReponseDto>(e.Message);
+            }
         }
     }
 }
