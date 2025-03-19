@@ -117,6 +117,9 @@ namespace ThailandpostTracking.Models
         public DateTime? UpdatedDate { get; set; }
         public int? UpdatedByUserId { get; set; }
 
+        [ForeignKey("TmpImportTrackingId")]
+        [InverseProperty("TrackingHeaders")]
+        public virtual TmpImportTracking TmpImportTracking { get; set; }
         [ForeignKey("TrackingBatchId")]
         [InverseProperty("TrackingHeaders")]
         public virtual TrackingBatch TrackingBatch { get; set; }
