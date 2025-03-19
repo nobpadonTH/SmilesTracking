@@ -80,7 +80,7 @@ namespace ThailandpostTracking.Controllers
         /// <returns></returns>
 
         [HttpGet("gettrackingdetail/filter")]
-        public async Task<ServiceResponse<List<GetTrackingDetailResponseDTO>>> GetTrackingDetail([FromQuery] GetTrackingDetailRequestDTO param)
+        public async Task<ServiceResponse<List<GetTimeLineResponseDTO>>> GetTrackingDetail([FromQuery] GetTrackingDetailRequestDTO param)
         {
             try
             {
@@ -89,7 +89,7 @@ namespace ThailandpostTracking.Controllers
             }
             catch (Exception e)
             {
-                return ResponseResult.Failure<List<GetTrackingDetailResponseDTO>>(e.Message);
+                return ResponseResult.Failure<List<GetTimeLineResponseDTO>>(e.Message);
             }
         }
 
