@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "DemoPOS": {
+    "Smilestracking API": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

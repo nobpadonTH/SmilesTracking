@@ -485,7 +485,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
 
                 var excelService = new NPOIExcelExportService();
 
-                excelService.AddSheetHeader(dtoOut, "รายชื่อที่นำเข้าไม่สำเร็จ", _trackingInfo);
+                excelService.AddSheetHeader(dtoOut, "รายTracking", _trackingInfo);
 
                 var response = new ReportReponseDto
                 {
