@@ -17,7 +17,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
 
         Task<ServiceResponseWithPagination<List<GetTrackingHeaderResponseDTO>>> GetTrackingHeader(GetTrackingHeaderRequestDTO input);
 
-        Task<List<GetTrackingDetailResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter);
+        Task<List<GetTimeLineResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter);
 
         Task<ServiceResponse<ReportReponseDto>> GetReportTracking();
     }

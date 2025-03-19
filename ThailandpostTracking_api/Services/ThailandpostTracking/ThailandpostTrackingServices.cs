@@ -419,7 +419,11 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         {
             try
             {
-                var data = _dbContext.TrackingHeaders.OrderByDescending(x => x.UpdatedDate).AsQueryable();
+                var data = _dbContext.TrackingHeaders
+                    .Include(x => x.TmpImportTracking)
+                    .Include(x => x.TrackingBatch)
+                    .OrderByDescending(x => x.UpdatedDate).ThenByDescending(x => x.TrackingCode).AsQueryable();
+
                 if (!string.IsNullOrWhiteSpace(filter.TrackingCode))
                 {
                     data = data.Where(x => x.TrackingCode == filter.TrackingCode);
@@ -454,14 +458,19 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             }
         }
 
-        public async Task<List<GetTrackingDetailResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
+        public async Task<List<GetTimeLineResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
         {
-            var data = _dbContext.TrackingDetails.Where(x => x.TrackingHeaderId == filter.TrackingHeaderId
-                                                          && x.TrackingBatchId == filter.TrackingBatchId
-                                                          && x.IsActive == true)
-                                                 .OrderByDescending(_ => _.Status_Date).AsQueryable();
+            var data = _dbContext.TrackingHeaders
+                       .Include(x => x.TrackingDetails.OrderByDescending(d => d.Status_Date))
+                       .Include(x => x.TmpImportTracking)
+                       .Include(x => x.TrackingBatch)
+                       .Where(x => x.TrackingHeaderId == filter.TrackingHeaderId
+                        && x.TrackingBatchId == filter.TrackingBatchId
+                        && x.IsActive == true)
+                       .OrderByDescending(_ => _.Status_Date).AsQueryable();
+
             //mapping dto response
-            var dtoOutput = _mapper.Map<List<GetTrackingDetailResponseDTO>>(data);
+            var dtoOutput = _mapper.Map<List<GetTimeLineResponseDTO>>(data);
 
             return dtoOutput;
         }
