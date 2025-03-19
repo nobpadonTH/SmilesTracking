@@ -15,37 +15,85 @@ namespace ThailandpostTracking.Models
         public Guid TrackingDetailId { get; set; }
         public Guid? TrackingHeaderId { get; set; }
         public Guid? TrackingBatchId { get; set; }
+        /// <summary>
+        /// สถานะ
+        /// </summary>
         [StringLength(50)]
         [Unicode(false)]
         public string Status { get; set; }
+        /// <summary>
+        /// คำอธิบายสถานะ
+        /// </summary>
         [StringLength(255)]
         public string Status_Description { get; set; }
+        /// <summary>
+        /// สถานะของวันที่
+        /// </summary>
         public DateTime? Status_Date { get; set; }
+        /// <summary>
+        /// รายละเอียดเพิ่มเติมของสถานะ
+        /// </summary>
         public string StatusDetail { get; set; }
+        /// <summary>
+        /// สถานที่ตั้ง
+        /// </summary>
         [StringLength(255)]
         public string Location { get; set; }
+        /// <summary>
+        /// รหัสไปรษณีย์
+        /// </summary>
         [StringLength(50)]
         [Unicode(false)]
         public string Postcode { get; set; }
+        /// <summary>
+        /// สถานะการจัดส่ง
+        /// </summary>
         [StringLength(50)]
         [Unicode(false)]
         public string Delivery_Status { get; set; }
+        /// <summary>
+        /// คำอธิบายการจัดส่ง
+        /// </summary>
         [StringLength(255)]
         public string Delivery_Description { get; set; }
+        /// <summary>
+        /// วันที่จัดส่ง
+        /// </summary>
         public DateTime? Delivery_Datetime { get; set; }
+        /// <summary>
+        /// ชื่อผู้รับ
+        /// </summary>
         [StringLength(255)]
         public string Receiver_Name { get; set; }
+        /// <summary>
+        /// ลายเซ็น
+        /// </summary>
         public string Signature { get; set; }
+        /// <summary>
+        /// ชื่อเจ้าหน้าที่นำจ่าย
+        /// </summary>
         [StringLength(255)]
         public string Delivery_Officer_Name { get; set; }
+        /// <summary>
+        /// เบอร์ติดต่อเจ้าหน้าที่นำจ่าย
+        /// </summary>
         [StringLength(100)]
         [Unicode(false)]
         public string Delivery_Officer_Tel { get; set; }
+        /// <summary>
+        /// ชื่อที่ทำการไปรษณีย์
+        /// </summary>
         [StringLength(255)]
         public string Office_Name { get; set; }
+        /// <summary>
+        /// เบอร์ติดต่อที่ทำการไปรษณีย์
+        /// </summary>
         [StringLength(100)]
         [Unicode(false)]
         public string Office_Tel { get; set; }
+        /// <summary>
+        /// THP Contact Center
+        /// </summary>
         [StringLength(100)]
         [Unicode(false)]
         public string Call_Center_Tel { get; set; }

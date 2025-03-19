@@ -44,6 +44,38 @@ namespace ThailandpostTracking.Data
             {
                 entity.Property(e => e.TrackingDetailId).ValueGeneratedNever();
 
+                entity.Property(e => e.Call_Center_Tel).HasComment("THP Contact Center");
+
+                entity.Property(e => e.Delivery_Datetime).HasComment("วันที่จัดส่ง");
+
+                entity.Property(e => e.Delivery_Description).HasComment("คำอธิบายการจัดส่ง");
+
+                entity.Property(e => e.Delivery_Officer_Name).HasComment("ชื่อเจ้าหน้าที่นำจ่าย");
+
+                entity.Property(e => e.Delivery_Officer_Tel).HasComment("เบอร์ติดต่อเจ้าหน้าที่นำจ่าย");
+
+                entity.Property(e => e.Delivery_Status).HasComment("สถานะการจัดส่ง");
+
+                entity.Property(e => e.Location).HasComment("สถานที่ตั้ง");
+
+                entity.Property(e => e.Office_Name).HasComment("ชื่อที่ทำการไปรษณีย์");
+
+                entity.Property(e => e.Office_Tel).HasComment("เบอร์ติดต่อที่ทำการไปรษณีย์");
+
+                entity.Property(e => e.Postcode).HasComment("รหัสไปรษณีย์");
+
+                entity.Property(e => e.Receiver_Name).HasComment("ชื่อผู้รับ");
+
+                entity.Property(e => e.Signature).HasComment("ลายเซ็น");
+
+                entity.Property(e => e.Status).HasComment("สถานะ");
+
+                entity.Property(e => e.StatusDetail).HasComment("รายละเอียดเพิ่มเติมของสถานะ");
+
+                entity.Property(e => e.Status_Date).HasComment("สถานะของวันที่");
+
+                entity.Property(e => e.Status_Description).HasComment("คำอธิบายสถานะ");
+
                 entity.HasOne(d => d.TrackingBatch)
                     .WithMany(p => p.TrackingDetails)
                     .HasForeignKey(d => d.TrackingBatchId)
@@ -58,6 +90,38 @@ namespace ThailandpostTracking.Data
             modelBuilder.Entity<TrackingHeader>(entity =>
             {
                 entity.Property(e => e.TrackingHeaderId).ValueGeneratedNever();
+
+                entity.Property(e => e.Call_Center_Tel).HasComment("THP Contact Center");
+
+                entity.Property(e => e.Delivery_Datetime).HasComment("วันที่จัดส่ง");
+
+                entity.Property(e => e.Delivery_Description).HasComment("คำอธิบายการจัดส่ง");
+
+                entity.Property(e => e.Delivery_Officer_Name).HasComment("ชื่อเจ้าหน้าที่นำจ่าย");
+
+                entity.Property(e => e.Delivery_Officer_Tel).HasComment("เบอร์ติดต่อเจ้าหน้าที่นำจ่าย");
+
+                entity.Property(e => e.Delivery_Status).HasComment("สถานะการจัดส่ง");
+
+                entity.Property(e => e.Location).HasComment("สถานที่ตั้ง");
+
+                entity.Property(e => e.Office_Name).HasComment("ชื่อที่ทำการไปรษณีย์");
+
+                entity.Property(e => e.Office_Tel).HasComment("บอร์ติดต่อที่ทำการไปรษณีย์");
+
+                entity.Property(e => e.Postcode).HasComment("รหัสไปรษณีย์");
+
+                entity.Property(e => e.Receiver_Name).HasComment("ชื่อผู้รับ");
+
+                entity.Property(e => e.Signature).HasComment("ลายเซ็น");
+
+                entity.Property(e => e.Status).HasComment("สถานะ");
+
+                entity.Property(e => e.StatusDetail).HasComment("รายละเอียดเพิ่มเติมของสถานะ");
+
+                entity.Property(e => e.Status_Date).HasComment("สถานะของวันที่");
+
+                entity.Property(e => e.Status_Description).HasComment("คำอธิบายสถานะ");
 
                 entity.HasOne(d => d.TrackingBatch)
                     .WithMany(p => p.TrackingHeaders)
