@@ -4,7 +4,7 @@
    "ContextNamespace": null,
    "DefaultDacpacSchema": null,
    "FilterSchemas": false,
-   "IncludeConnectionString": true,
+   "IncludeConnectionString": false,
    "ModelNamespace": null,
    "OutputContextPath": "Data",
    "OutputPath": "Models",
@@ -29,6 +29,10 @@
       {
          "Name": "[dbo].[TrackingHeader]",
          "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[usp_ReportTracking_Select]",
+         "ObjectType": 1
       }
    ],
    "UiHint": "win2012r2.SmilesTracking.dbo",

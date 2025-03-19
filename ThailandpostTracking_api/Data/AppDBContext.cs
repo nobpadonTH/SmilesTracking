@@ -65,6 +65,7 @@ namespace ThailandpostTracking.Data
                     .HasConstraintName("FK_TrackingHeader_TrackingBatch");
             });
 
+            OnModelCreatingGeneratedProcedures(modelBuilder);
             OnModelCreatingPartial(modelBuilder);
         }
 
