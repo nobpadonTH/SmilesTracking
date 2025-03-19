@@ -8,7 +8,7 @@ using ThailandpostTracking.Services.ThailandpostTracking;
 
 namespace ThailandpostTracking.Controllers
 {
-    [Authorize(Permission.Base)]
+    //[Authorize(Permission.Base)]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class ThailandpostTrackingController : ControllerBase
