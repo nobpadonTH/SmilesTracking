@@ -11,6 +11,9 @@ namespace ThailandpostTracking
             CreateMap<TrackingItem, TrackingDetail>();
             CreateMap<TrackingHeader, GetTrackingHeaderResponseDTO>();
             CreateMap<TrackingDetail, GetTrackingDetailResponseDTO>();
+            CreateMap<TmpImportTracking, GetTmpImportTrackingResponseDTO>();
+            CreateMap<TrackingBatch, GetTrackingBatchResponseDTO>();
+            CreateMap<TrackingHeader, GetTimeLineResponseDTO>();
         }
     }
 }
