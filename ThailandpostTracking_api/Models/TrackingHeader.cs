@@ -26,9 +26,6 @@ namespace ThailandpostTracking.Models
         [StringLength(255)]
         [Unicode(false)]
         public string ReferenceCode { get; set; }
-        [StringLength(200)]
-        public string SchoolName { get; set; }
-        public string SchoolAddress { get; set; }
         /// <summary>
         /// สถานะ
         /// </summary>
