@@ -36,8 +36,5 @@ namespace ThailandpostTracking.DTOs.Thailandpost.Response
         public string Office_Tel { get; set; }
 
         public string Call_Center_Tel { get; set; }
-
-        public DateTime? UpdatedDate { get; set; }
-        public int? UpdatedByUserId { get; set; }
     }
 }
