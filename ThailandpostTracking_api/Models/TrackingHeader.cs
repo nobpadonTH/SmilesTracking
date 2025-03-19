@@ -23,9 +23,6 @@ namespace ThailandpostTracking.Models
         [StringLength(255)]
         [Unicode(false)]
         public string TrackingCode { get; set; }
-        [StringLength(255)]
-        [Unicode(false)]
-        public string ReferenceCode { get; set; }
         /// <summary>
         /// สถานะ
         /// </summary>
