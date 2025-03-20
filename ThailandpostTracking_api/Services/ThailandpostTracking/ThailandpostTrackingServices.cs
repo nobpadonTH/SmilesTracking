@@ -86,7 +86,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                 {
                     var jsonObject = response?.Response.Items[track];
 
-                    var tmpImportTracking = _dbContext.TmpImportTrackings.FirstOrDefault(x => x.TrackingCode == track);
+                    var tmpImportTracking = await _dbContext.TmpImportTrackings.OrderBy(x => x.TmpImportTrackingId).FirstOrDefaultAsync(x => x.TrackingCode == track);
                     if (jsonObject?.Count != 0)
                     {
                         var headerId = Guid.NewGuid();
@@ -205,7 +205,6 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                 {
                     var jsonObject = response?.Response.Items[track];
 
-                    var tmpImportTracking = _dbContext.TmpImportTrackings.FirstOrDefault(x => x.TrackingCode == track);
                     if (jsonObject?.Count != 0)
                     {
                         var headerId = Guid.NewGuid();
@@ -219,7 +218,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                             .OrderByDescending(x => x.ParsedDate)
                             .FirstOrDefault();
 
-                        var dataInsert = _dbContext.TrackingHeaders.Where(x => x.IsActive == true && x.TrackingCode == track).SingleOrDefault();
+                        var dataInsert = await _dbContext.TrackingHeaders.Where(x => x.IsActive == true && x.TrackingCode == track).SingleOrDefaultAsync();
                         if (dataInsert != null)
                         {
                             dataInsert.TrackingBatchId = batchId;
