@@ -31,6 +31,7 @@ namespace ThailandpostTracking.HostedServices
                 Barcode = tmpImportTrackings.Select(x => x.TrackingCode).ToList()
             };
             Log.Information("TrackingInsertJob Start");
+            Log.Information("TrackingInsertJob Count: {@Count}", tmpImportTrackings.Count);
             if (tmpImportTrackings.Count > 0)
                 await _services.InsertTracking(input);
             Log.Information("TrackingInsertJob Successfully");
