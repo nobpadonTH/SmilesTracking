@@ -4,6 +4,7 @@ namespace ThailandpostTracking.DTOs.Thailandpost.Response
 {
     public class GetTimeLineResponseDTO
     {
+        public string TrackingCode { get; set; }
         public List<GetTrackingDetailResponseDTO> TrackingDetails { get; set; }
         public Guid TmpImportTrackingId { get; set; }
         public GetTmpImportTrackingResponseDTO TmpImportTracking { get; set; }
