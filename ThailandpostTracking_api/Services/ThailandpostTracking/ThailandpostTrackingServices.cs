@@ -30,22 +30,22 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         {
             "TrackingCode",
             "ReferenceCode",
-            "Status",
-            "Status_Description",
-            "Status_Date",
-            "StatusDetail",
-            "Location",
-            "Postcode",
-            "Delivery_Status",
-            "Delivery_Description",
-            "Delivery_Datetime",
-            "Receiver_Name",
-            "Signature",
-            "Delivery_Officer_Name",
-            "Delivery_Officer_Tel",
-            "Office_Name",
-            "Office_Tel",
-            "Call_Center_Tel"
+            "สถานะ",
+            "คำอธิบายสถานะ",
+            "สถานะของวันที่",
+            "รายละเอียดเพิ่มเติมของสถานะ",
+            "สถานที่ตั้ง",
+            "รหัสไปรษณีย์",
+            "สถานะการจัดส่ง",
+            "คำอธิบายการจัดส่ง",
+            "วันที่จัดส่ง",
+            "ชื่อผู้รับ",
+            "ลายเซ็น",
+            "ชื่อเจ้าหน้าที่นำจ่าย",
+            "เบอร์ติดต่อเจ้าหน้าที่นำจ่าย",
+            "ชื่อที่ทำการไปรษณีย์",
+            "เบอร์ติดต่อที่ทำการไปรษณีย์",
+            "THP Contact Center"
         };
 
         public ThailandpostTrackingServices(IOptions<ThailandpostTrackingSetting> configuration, AppDBContext dbContext, IMapper mapper, IHttpContextAccessor httpContext)
