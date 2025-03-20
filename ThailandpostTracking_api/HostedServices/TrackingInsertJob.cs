@@ -23,7 +23,7 @@ namespace ThailandpostTracking.HostedServices
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var tmpImportTrackings = _dbContext.TmpImportTrackings.Where(x => x.IsInsert == null && x.IsResult == null).OrderBy(a => a.TmpImportTrackingId).Take(_configuration.TakeInSert).ToList();
+            var tmpImportTrackings = _dbContext.TmpImportTrackings.Where(x => x.IsInsert == null && x.IsResult == null && x.IsActive == true).OrderBy(a => a.TmpImportTrackingId).Take(_configuration.TakeInSert).ToList();
             var input = new GetItemsbyBarcodeRequestDTO
             {
                 Status = "all",
