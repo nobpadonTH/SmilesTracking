@@ -275,6 +275,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
 
             var req = new RestRequest(_configuration.GetTokenEnpoint);
             var response = await Task.FromResult(_client.Post<ThailandpostTrackingGetTokenResponseDTO>(req));
+            Log.Information("[GetToken] - response data {@response}", response);
 
             var token = response?.token;
             return token;
