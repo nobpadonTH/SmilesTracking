@@ -32,6 +32,8 @@ namespace ThailandpostTracking.Models
         public bool? IsResult { get; set; }
         [StringLength(255)]
         public string Message { get; set; }
+        public bool? IsActive { get; set; }
+        public string Remark { get; set; }
 
         [InverseProperty("TmpImportTracking")]
         public virtual ICollection<TrackingHeader> TrackingHeaders { get; set; }
