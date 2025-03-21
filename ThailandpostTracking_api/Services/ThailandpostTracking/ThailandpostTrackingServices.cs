@@ -103,7 +103,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                         var dataInsert = new TrackingHeader
                         {
                             TrackingHeaderId = headerId,
-                            TmpImportTrackingId = tmpImportTracking?.TmpImportTrackingId,
+                            TmpImportTrackingId = tmpImportTracking.TmpImportTrackingId,
                             TrackingBatchId = batchId,
                             TrackingCode = track,
                             Status = selectList?.Item.Status,
