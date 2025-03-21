@@ -219,6 +219,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                             .FirstOrDefault();
 
                         var dataInsert = await _dbContext.TrackingHeaders.Where(x => x.IsActive == true && x.TrackingCode == track).SingleOrDefaultAsync();
+
                         if (dataInsert != null)
                         {
                             dataInsert.TrackingBatchId = batchId;
@@ -261,6 +262,8 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                     }
                 }
                 _dbContext.Add(dataBatch);
+
+                Log.Debug("[UpsertTracking] - SaveChangesAsync");
                 await _dbContext.SaveChangesAsync();
             }
 
@@ -363,7 +366,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         public async Task<List<GetTimeLineResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
         {
             var data = _dbContext.TrackingHeaders
-                       .Include(x => x.TrackingDetails.OrderByDescending(d => d.Status_Date))
+                       .Include(x => x.TrackingDetails.Where(x => x.TrackingHeaderId == filter.TrackingHeaderId && x.TrackingBatchId == filter.TrackingBatchId).OrderByDescending(d => d.Status_Date))
                        .Include(x => x.TmpImportTracking)
                        .Include(x => x.TrackingBatch)
                        .Where(x => x.TrackingHeaderId == filter.TrackingHeaderId
