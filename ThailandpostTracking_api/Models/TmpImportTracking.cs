@@ -11,11 +11,6 @@ namespace ThailandpostTracking.Models
     [Table("TmpImportTracking")]
     public partial class TmpImportTracking
     {
-        public TmpImportTracking()
-        {
-            TrackingHeaders = new HashSet<TrackingHeader>();
-        }
-
         [Key]
         public Guid TmpImportTrackingId { get; set; }
         [StringLength(255)]
@@ -36,6 +31,6 @@ namespace ThailandpostTracking.Models
         public string Remark { get; set; }
 
         [InverseProperty("TmpImportTracking")]
-        public virtual ICollection<TrackingHeader> TrackingHeaders { get; set; }
+        public virtual TrackingHeader TrackingHeader { get; set; }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ThailandpostTracking.Models
 {
     [Table("TrackingHeader")]
+    [Index("TmpImportTrackingId", Name = "TmpImportTrackingId", IsUnique = true)]
     public partial class TrackingHeader
     {
         public TrackingHeader()
@@ -19,7 +20,7 @@ namespace ThailandpostTracking.Models
         [Key]
         public Guid TrackingHeaderId { get; set; }
         public Guid? TrackingBatchId { get; set; }
-        public Guid? TmpImportTrackingId { get; set; }
+        public Guid TmpImportTrackingId { get; set; }
         [StringLength(255)]
         [Unicode(false)]
         public string TrackingCode { get; set; }
@@ -112,7 +113,7 @@ namespace ThailandpostTracking.Models
         public int? UpdatedByUserId { get; set; }
 
         [ForeignKey("TmpImportTrackingId")]
-        [InverseProperty("TrackingHeaders")]
+        [InverseProperty("TrackingHeader")]
         public virtual TmpImportTracking TmpImportTracking { get; set; }
         [ForeignKey("TrackingBatchId")]
         [InverseProperty("TrackingHeaders")]
