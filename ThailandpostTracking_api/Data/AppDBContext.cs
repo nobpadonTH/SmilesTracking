@@ -124,8 +124,9 @@ namespace ThailandpostTracking.Data
                 entity.Property(e => e.Status_Description).HasComment("คำอธิบายสถานะ");
 
                 entity.HasOne(d => d.TmpImportTracking)
-                    .WithMany(p => p.TrackingHeaders)
-                    .HasForeignKey(d => d.TmpImportTrackingId)
+                    .WithOne(p => p.TrackingHeader)
+                    .HasForeignKey<TrackingHeader>(d => d.TmpImportTrackingId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_TrackingHeader_TmpImportTracking");
 
                 entity.HasOne(d => d.TrackingBatch)
