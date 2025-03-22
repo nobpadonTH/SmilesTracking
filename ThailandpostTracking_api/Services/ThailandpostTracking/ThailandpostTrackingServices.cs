@@ -80,6 +80,9 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                 UpdatedByUserId = 1
             };
 
+            int success = 0;
+            int fail = 0;
+
             if (response.Status)
             {
                 foreach (var track in input.Barcode)
@@ -154,7 +157,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                             tmpImportTracking.IsResult = true;
                             tmpImportTracking.TransactionDate = now;
                             tmpImportTracking.Message = "บันทึกสำเร็จ";
-
+                            success++;
                             _dbContext.Update(tmpImportTracking);
                         }
                     }
@@ -167,16 +170,21 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                             tmpImportTracking.IsResult = false;
                             tmpImportTracking.TransactionDate = now;
                             tmpImportTracking.Message = "บันทึกไม่สำเร็จ";
-
+                            fail++;
                             _dbContext.Update(tmpImportTracking);
                         }
                     }
                 }
+
                 _dbContext.Add(dataBatch);
                 _logger.Information("[InsertTracking]- SaveChangesAsync");
 
                 await _dbContext.SaveChangesAsync();
             }
+
+            _logger.Information("[InsertTracking]- success:{@success}", success);
+            _logger.Information("[InsertTracking]- fail:{@fail} ", fail);
+
             return response;
         }
 
@@ -199,7 +207,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                 UpdatedDate = now,
                 UpdatedByUserId = 1
             };
-
+            int success = 0;
             if (response.Status)
             {
                 foreach (var track in input.Barcode)
@@ -208,6 +216,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
 
                     if (jsonObject?.Count != 0)
                     {
+                        success++;
                         var headerId = Guid.NewGuid();
 
                         var selectList = jsonObject?
@@ -264,7 +273,9 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                 }
                 _dbContext.Add(dataBatch);
 
+                Log.Debug("[UpsertTracking] - {@success}", success);
                 Log.Debug("[UpsertTracking] - SaveChangesAsync");
+
                 await _dbContext.SaveChangesAsync();
             }
 
