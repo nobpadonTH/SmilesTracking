@@ -270,6 +270,108 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             return response;
         }
 
+        public async Task<ServiceResponseWithPagination<List<GetTrackingHeaderResponseDTO>>> GetTrackingHeader(GetTrackingHeaderRequestDTO filter)
+        {
+            try
+            {
+                var data = _dbContext.TrackingHeaders
+                    .Include(x => x.TmpImportTracking)
+                    .Include(x => x.TrackingBatch)
+                    .OrderByDescending(x => x.UpdatedDate)
+                        .ThenByDescending(x => x.TrackingCode).AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(filter.TrackingCode))
+                {
+                    data = data.Where(x => x.TrackingCode == filter.TrackingCode);
+                }
+
+                //Ordering
+                if (!string.IsNullOrWhiteSpace(filter.OrderingField))
+                {
+                    try
+                    {
+                        data = data.OrderBy($"{filter.OrderingField} {(filter.AscendingOrder ? "ascending" : "descending")}");
+                    }
+                    catch (Exception e)
+                    {
+                        return ResponseResultWithPagination.Failure<List<GetTrackingHeaderResponseDTO>>($"Could not order by field: {filter.OrderingField}");
+                    }
+                }
+
+                //Pagination
+                var paginationResult = await _httpContext.HttpContext.InsertPaginationParametersInResponse(data, filter.RecordsPerPage, filter.Page);
+                var dto = await data.Paginate(filter).ToListAsync();
+
+                //mapping dto response
+                var dtoOutput = _mapper.Map<List<GetTrackingHeaderResponseDTO>>(dto);
+
+                return ResponseResultWithPagination.Success(dtoOutput, paginationResult, "Success");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message, "[GetTrackingHeader] - An error occurred");
+                return ResponseResultWithPagination.Failure<List<GetTrackingHeaderResponseDTO>>(ex.Message);
+            }
+        }
+
+        public async Task<List<GetTimeLineResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
+        {
+            var data = _dbContext.TrackingHeaders
+                       .Include(x => x.TrackingDetails
+                            .Where(x => x.TrackingHeaderId == filter.TrackingHeaderId && x.TrackingBatchId == filter.TrackingBatchId && x.IsActive == true)
+                            .OrderByDescending(d => d.Status_Date))
+                       .Include(x => x.TmpImportTracking)
+                       .Include(x => x.TrackingBatch)
+                            .Where(x => x.IsActive == true)
+                       .Where(x => x.TrackingHeaderId == filter.TrackingHeaderId
+                        && x.TrackingBatchId == filter.TrackingBatchId
+                        && x.IsActive == true)
+                       .OrderByDescending(_ => _.Status_Date).AsQueryable();
+
+            //mapping dto response
+            var dtoOutput = _mapper.Map<List<GetTimeLineResponseDTO>>(data);
+
+            return dtoOutput;
+        }
+
+        public async Task<ServiceResponse<ReportReponseDto>> GetReportTracking()
+        {
+            try
+            {
+                _logger.Information("[ReportTracking]- Start Date: {Date} Procedures.usp_ReportTracking_SelectAsync");
+
+                var result = await _dbContext.Procedures.usp_ReportTracking_SelectAsync();
+
+                if (result.Count == 0)
+                {
+                    throw new Exception("ไม่พบข้อมูล");
+                }
+
+                var dtoOut = _mapper.Map<List<usp_ReportTracking_SelectResult>>(result);
+
+                string fileName = $"รายTracking_{DateTime.Now:ddMMyyyy_HHmmss}.xlsx";
+
+                var excelService = new NPOIExcelExportService();
+
+                excelService.AddSheetHeader(dtoOut, "รายTracking", _trackingInfo);
+
+                var response = new ReportReponseDto
+                {
+                    Data = excelService.GetFile(),
+                    IsResult = true,
+                    Message = "Success",
+                    FileName = fileName,
+                };
+
+                return ResponseResult.Success(response, "Success");
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "[ReportTracking] - An error occurred , {Msg}", e.Message);
+                return ResponseResult.Failure<ReportReponseDto>(e.Message);
+            }
+        }
+
         private async Task<string> GetToken()
         {
             _client.AddDefaultHeader("Authorization", "Token " + _configuration.APIKey);
@@ -317,104 +419,6 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
             catch
             {
                 return DateTime.MinValue; // Fallback for errors
-            }
-        }
-
-        public async Task<ServiceResponseWithPagination<List<GetTrackingHeaderResponseDTO>>> GetTrackingHeader(GetTrackingHeaderRequestDTO filter)
-        {
-            try
-            {
-                var data = _dbContext.TrackingHeaders
-                    .Include(x => x.TmpImportTracking)
-                    .Include(x => x.TrackingBatch)
-                    .OrderByDescending(x => x.UpdatedDate).ThenByDescending(x => x.TrackingCode).AsQueryable();
-
-                if (!string.IsNullOrWhiteSpace(filter.TrackingCode))
-                {
-                    data = data.Where(x => x.TrackingCode == filter.TrackingCode);
-                }
-
-                //Ordering
-                if (!string.IsNullOrWhiteSpace(filter.OrderingField))
-                {
-                    try
-                    {
-                        data = data.OrderBy($"{filter.OrderingField} {(filter.AscendingOrder ? "ascending" : "descending")}");
-                    }
-                    catch (Exception e)
-                    {
-                        return ResponseResultWithPagination.Failure<List<GetTrackingHeaderResponseDTO>>($"Could not order by field: {filter.OrderingField}");
-                    }
-                }
-
-                //Pagination
-                var paginationResult = await _httpContext.HttpContext.InsertPaginationParametersInResponse(data, filter.RecordsPerPage, filter.Page);
-                var dto = await data.Paginate(filter).ToListAsync();
-
-                //mapping dto response
-                var dtoOutput = _mapper.Map<List<GetTrackingHeaderResponseDTO>>(dto);
-
-                return ResponseResultWithPagination.Success(dtoOutput, paginationResult, "Success");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.Message, "[GetTrackingHeader] - An error occurred");
-                return ResponseResultWithPagination.Failure<List<GetTrackingHeaderResponseDTO>>(ex.Message);
-            }
-        }
-
-        public async Task<List<GetTimeLineResponseDTO>> GetTrackingDetail(GetTrackingDetailRequestDTO filter)
-        {
-            var data = _dbContext.TrackingHeaders
-                       .Include(x => x.TrackingDetails.Where(x => x.TrackingHeaderId == filter.TrackingHeaderId && x.TrackingBatchId == filter.TrackingBatchId).OrderByDescending(d => d.Status_Date))
-                       .Include(x => x.TmpImportTracking)
-                       .Include(x => x.TrackingBatch)
-                       .Where(x => x.TrackingHeaderId == filter.TrackingHeaderId
-                        && x.TrackingBatchId == filter.TrackingBatchId
-                        && x.IsActive == true)
-                       .OrderByDescending(_ => _.Status_Date).AsQueryable();
-
-            //mapping dto response
-            var dtoOutput = _mapper.Map<List<GetTimeLineResponseDTO>>(data);
-
-            return dtoOutput;
-        }
-
-        public async Task<ServiceResponse<ReportReponseDto>> GetReportTracking()
-        {
-            try
-            {
-                _logger.Information("[ReportTracking]- Start Date: {Date} Procedures.usp_ReportTracking_SelectAsync");
-
-                var result = await _dbContext.Procedures.usp_ReportTracking_SelectAsync();
-
-                if (result.Count == 0)
-                {
-                    throw new Exception("ไม่พบข้อมูล");
-                }
-
-                var dtoOut = _mapper.Map<List<usp_ReportTracking_SelectResult>>(result);
-
-                string fileName = $"รายTracking_{DateTime.Now:ddMMyyyy_HHmmss}.xlsx";
-
-                var excelService = new NPOIExcelExportService();
-
-                excelService.AddSheetHeader(dtoOut, "รายTracking", _trackingInfo);
-
-                var response = new ReportReponseDto
-                {
-                    Data = excelService.GetFile(),
-                    IsResult = true,
-                    Message = "Success",
-                    FileName = fileName,
-                };
-
-                return ResponseResult.Success(response, "Success");
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e, "[ReportTracking] - An error occurred , {Msg}", e.Message);
-                return ResponseResult.Failure<ReportReponseDto>(e.Message);
             }
         }
     }
