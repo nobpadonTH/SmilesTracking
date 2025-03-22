@@ -173,6 +173,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                     }
                 }
                 _dbContext.Add(dataBatch);
+                _logger.Information("[InsertTracking]- SaveChangesAsync");
 
                 await _dbContext.SaveChangesAsync();
             }
