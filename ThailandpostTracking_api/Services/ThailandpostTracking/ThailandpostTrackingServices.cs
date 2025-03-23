@@ -82,97 +82,104 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
 
             int success = 0;
             int fail = 0;
-
+            int keyExists = 0;
             if (response.Status)
             {
                 foreach (var track in input.Barcode)
                 {
-                    var jsonObject = response?.Response.Items[track];
-
-                    var tmpImportTracking = await _dbContext.TmpImportTrackings.OrderBy(x => x.TmpImportTrackingId).FirstOrDefaultAsync(x => x.TrackingCode == track);
-                    if (jsonObject?.Count != 0)
+                    if (response?.Response.Items.ContainsKey(track) == true) // Check if key exists
                     {
-                        var headerId = Guid.NewGuid();
+                        var jsonObject = response?.Response.Items[track];
 
-                        var selectList = jsonObject?
-                            .Select(item => new
+                        var tmpImportTracking = await _dbContext.TmpImportTrackings.OrderBy(x => x.TmpImportTrackingId).FirstOrDefaultAsync(x => x.TrackingCode == track);
+                        if (jsonObject?.Count != 0)
+                        {
+                            var headerId = Guid.NewGuid();
+
+                            var selectList = jsonObject?
+                                .Select(item => new
+                                {
+                                    Item = item,
+                                    ParsedDate = ParseBuddhistDate(item.Status_Date)
+                                })
+                                .OrderByDescending(x => x.ParsedDate)
+                                .FirstOrDefault();
+
+                            var dataInsert = new TrackingHeader
                             {
-                                Item = item,
-                                ParsedDate = ParseBuddhistDate(item.Status_Date)
-                            })
-                            .OrderByDescending(x => x.ParsedDate)
-                            .FirstOrDefault();
+                                TrackingHeaderId = headerId,
+                                TmpImportTrackingId = tmpImportTracking.TmpImportTrackingId,
+                                TrackingBatchId = batchId,
+                                TrackingCode = track,
+                                Status = selectList?.Item.Status,
+                                Status_Description = selectList?.Item.Status_Description,
+                                Status_Date = ParseBuddhistDate(selectList.Item.Status_Date),
+                                Location = selectList?.Item.Location,
+                                Postcode = selectList?.Item.Postcode,
+                                Delivery_Description = selectList?.Item.Delivery_Description,
+                                Delivery_Datetime = ParseBuddhistDate(selectList.Item.Delivery_Datetime),
+                                Signature = selectList?.Item.Signature,
+                                Receiver_Name = selectList?.Item.Receiver_Name,
+                                Delivery_Officer_Name = selectList?.Item.Delivery_Officer_Name,
+                                Delivery_Officer_Tel = selectList?.Item.Delivery_Officer_Tel,
+                                Office_Name = selectList?.Item.Office_Name,
+                                Office_Tel = selectList?.Item.Office_Tel,
+                                Call_Center_Tel = selectList?.Item.Call_Center_Tel,
+                                Delivery_Status = selectList?.Item.Delivery_Status,
+                                IsActive = true,
+                                CreatedDate = now,
+                                CreatedByUserId = 1,
+                                UpdatedDate = now,
+                                UpdatedByUserId = 1
+                            };
+                            _dbContext.Add(dataInsert);
 
-                        var dataInsert = new TrackingHeader
+                            var trackingItem = _mapper.Map<List<TrackingDetail>>(jsonObject);
+
+                            trackingItem.ForEach(x =>
+                            {
+                                x.TrackingDetailId = Guid.NewGuid();
+                                x.TrackingBatchId = batchId;
+                                x.TrackingHeaderId = headerId;
+                                x.Status_Date = x.Status_Date?.AddYears(-543);
+                                x.Delivery_Datetime = x.Delivery_Datetime?.AddYears(-543);
+                                x.IsActive = true;
+                                x.CreatedDate = now;
+                                x.CreatedByUserId = 1;
+                                x.UpdatedDate = now;
+                                x.UpdatedByUserId = 1;
+                            });
+
+                            await _dbContext.AddRangeAsync(trackingItem);
+
+                            // Ensure tmpImportTracking is not null before updating
+                            if (tmpImportTracking != null)
+                            {
+                                tmpImportTracking.IsInsert = true;
+                                tmpImportTracking.IsResult = true;
+                                tmpImportTracking.TransactionDate = now;
+                                tmpImportTracking.Message = "บันทึกสำเร็จ";
+                                success++;
+                                _dbContext.Update(tmpImportTracking);
+                            }
+                        }
+                        else
                         {
-                            TrackingHeaderId = headerId,
-                            TmpImportTrackingId = tmpImportTracking.TmpImportTrackingId,
-                            TrackingBatchId = batchId,
-                            TrackingCode = track,
-                            Status = selectList?.Item.Status,
-                            Status_Description = selectList?.Item.Status_Description,
-                            Status_Date = ParseBuddhistDate(selectList.Item.Status_Date),
-                            Location = selectList?.Item.Location,
-                            Postcode = selectList?.Item.Postcode,
-                            Delivery_Description = selectList?.Item.Delivery_Description,
-                            Delivery_Datetime = ParseBuddhistDate(selectList.Item.Delivery_Datetime),
-                            Signature = selectList?.Item.Signature,
-                            Receiver_Name = selectList?.Item.Receiver_Name,
-                            Delivery_Officer_Name = selectList?.Item.Delivery_Officer_Name,
-                            Delivery_Officer_Tel = selectList?.Item.Delivery_Officer_Tel,
-                            Office_Name = selectList?.Item.Office_Name,
-                            Office_Tel = selectList?.Item.Office_Tel,
-                            Call_Center_Tel = selectList?.Item.Call_Center_Tel,
-                            Delivery_Status = selectList?.Item.Delivery_Status,
-                            IsActive = true,
-                            CreatedDate = now,
-                            CreatedByUserId = 1,
-                            UpdatedDate = now,
-                            UpdatedByUserId = 1
-                        };
-                        _dbContext.Add(dataInsert);
-
-                        var trackingItem = _mapper.Map<List<TrackingDetail>>(jsonObject);
-
-                        trackingItem.ForEach(x =>
-                        {
-                            x.TrackingDetailId = Guid.NewGuid();
-                            x.TrackingBatchId = batchId;
-                            x.TrackingHeaderId = headerId;
-                            x.Status_Date = x.Status_Date?.AddYears(-543);
-                            x.Delivery_Datetime = x.Delivery_Datetime?.AddYears(-543);
-                            x.IsActive = true;
-                            x.CreatedDate = now;
-                            x.CreatedByUserId = 1;
-                            x.UpdatedDate = now;
-                            x.UpdatedByUserId = 1;
-                        });
-
-                        await _dbContext.AddRangeAsync(trackingItem);
-
-                        // Ensure tmpImportTracking is not null before updating
-                        if (tmpImportTracking != null)
-                        {
-                            tmpImportTracking.IsInsert = true;
-                            tmpImportTracking.IsResult = true;
-                            tmpImportTracking.TransactionDate = now;
-                            tmpImportTracking.Message = "บันทึกสำเร็จ";
-                            success++;
-                            _dbContext.Update(tmpImportTracking);
+                            // Ensure tmpImportTracking is not null before updating
+                            if (tmpImportTracking != null)
+                            {
+                                tmpImportTracking.IsInsert = false;
+                                tmpImportTracking.IsResult = false;
+                                tmpImportTracking.TransactionDate = now;
+                                tmpImportTracking.Message = "บันทึกไม่สำเร็จ";
+                                fail++;
+                                _dbContext.Update(tmpImportTracking);
+                            }
                         }
                     }
                     else
                     {
-                        // Ensure tmpImportTracking is not null before updating
-                        if (tmpImportTracking != null)
-                        {
-                            tmpImportTracking.IsInsert = false;
-                            tmpImportTracking.IsResult = false;
-                            tmpImportTracking.TransactionDate = now;
-                            tmpImportTracking.Message = "บันทึกไม่สำเร็จ";
-                            fail++;
-                            _dbContext.Update(tmpImportTracking);
-                        }
+                        keyExists++;
                     }
                 }
 
@@ -184,6 +191,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
 
             _logger.Information("[InsertTracking]- success:{@success}", success);
             _logger.Information("[InsertTracking]- fail:{@fail} ", fail);
+            _logger.Information("[InsertTracking]- key not exists:{@keyExists} ", keyExists);
 
             return response;
         }
