@@ -216,73 +216,82 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
                 UpdatedByUserId = 1
             };
             int success = 0;
+            int keyExists = 0;
             if (response.Status)
             {
                 foreach (var track in input.Barcode)
                 {
-                    var jsonObject = response?.Response.Items[track];
-
-                    if (jsonObject?.Count != 0)
+                    if (response?.Response.Items.ContainsKey(track) == true) // Check if key exists
                     {
-                        success++;
-                        var headerId = Guid.NewGuid();
+                        var jsonObject = response?.Response.Items[track];
 
-                        var selectList = jsonObject?
-                            .Select(item => new
+                        if (jsonObject?.Count != 0)
+                        {
+                            var headerId = Guid.NewGuid();
+
+                            var selectList = jsonObject?
+                                .Select(item => new
+                                {
+                                    Item = item,
+                                    ParsedDate = ParseBuddhistDate(item.Status_Date)
+                                })
+                                .OrderByDescending(x => x.ParsedDate)
+                                .FirstOrDefault();
+
+                            var dataInsert = await _dbContext.TrackingHeaders.Where(x => x.IsActive == true && x.TrackingCode == track).SingleOrDefaultAsync();
+
+                            if (dataInsert != null)
                             {
-                                Item = item,
-                                ParsedDate = ParseBuddhistDate(item.Status_Date)
-                            })
-                            .OrderByDescending(x => x.ParsedDate)
-                            .FirstOrDefault();
+                                dataInsert.TrackingBatchId = batchId;
+                                dataInsert.Status = selectList?.Item.Status;
+                                dataInsert.Status_Description = selectList?.Item.Status_Description;
+                                dataInsert.Status_Date = ParseBuddhistDate(selectList.Item.Status_Date);
+                                dataInsert.Location = selectList?.Item.Location;
+                                dataInsert.Postcode = selectList?.Item.Postcode;
+                                dataInsert.Delivery_Description = selectList?.Item.Delivery_Description;
+                                dataInsert.Delivery_Datetime = ParseBuddhistDate(selectList.Item.Delivery_Datetime);
+                                dataInsert.Signature = selectList?.Item.Signature;
+                                dataInsert.Receiver_Name = selectList?.Item.Receiver_Name;
+                                dataInsert.Delivery_Officer_Name = selectList?.Item.Delivery_Officer_Name;
+                                dataInsert.Delivery_Officer_Tel = selectList?.Item.Delivery_Officer_Tel;
+                                dataInsert.Office_Name = selectList?.Item.Office_Name;
+                                dataInsert.Office_Tel = selectList?.Item.Office_Tel;
+                                dataInsert.Call_Center_Tel = selectList?.Item.Call_Center_Tel;
+                                dataInsert.Delivery_Status = selectList?.Item.Delivery_Status;
+                                dataInsert.UpdatedDate = now;
+                                dataInsert.UpdatedByUserId = 1;
+                                _dbContext.Update(dataInsert);
+                            }
 
-                        var dataInsert = await _dbContext.TrackingHeaders.Where(x => x.IsActive == true && x.TrackingCode == track).SingleOrDefaultAsync();
+                            var trackingItem = _mapper.Map<List<TrackingDetail>>(jsonObject);
 
-                        if (dataInsert != null)
-                        {
-                            dataInsert.TrackingBatchId = batchId;
-                            dataInsert.Status = selectList?.Item.Status;
-                            dataInsert.Status_Description = selectList?.Item.Status_Description;
-                            dataInsert.Status_Date = ParseBuddhistDate(selectList.Item.Status_Date);
-                            dataInsert.Location = selectList?.Item.Location;
-                            dataInsert.Postcode = selectList?.Item.Postcode;
-                            dataInsert.Delivery_Description = selectList?.Item.Delivery_Description;
-                            dataInsert.Delivery_Datetime = ParseBuddhistDate(selectList.Item.Delivery_Datetime);
-                            dataInsert.Signature = selectList?.Item.Signature;
-                            dataInsert.Receiver_Name = selectList?.Item.Receiver_Name;
-                            dataInsert.Delivery_Officer_Name = selectList?.Item.Delivery_Officer_Name;
-                            dataInsert.Delivery_Officer_Tel = selectList?.Item.Delivery_Officer_Tel;
-                            dataInsert.Office_Name = selectList?.Item.Office_Name;
-                            dataInsert.Office_Tel = selectList?.Item.Office_Tel;
-                            dataInsert.Call_Center_Tel = selectList?.Item.Call_Center_Tel;
-                            dataInsert.Delivery_Status = selectList?.Item.Delivery_Status;
-                            dataInsert.UpdatedDate = now;
-                            dataInsert.UpdatedByUserId = 1;
-                            _dbContext.Update(dataInsert);
+                            trackingItem.ForEach(x =>
+                            {
+                                x.TrackingDetailId = Guid.NewGuid();
+                                x.TrackingBatchId = batchId;
+                                x.TrackingHeaderId = dataInsert?.TrackingHeaderId;
+                                x.Status_Date = x.Status_Date?.AddYears(-543);
+                                x.Delivery_Datetime = x.Delivery_Datetime?.AddYears(-543);
+                                x.IsActive = true;
+                                x.CreatedDate = now;
+                                x.CreatedByUserId = 1;
+                                x.UpdatedDate = now;
+                                x.UpdatedByUserId = 1;
+                            });
+                            await _dbContext.AddRangeAsync(trackingItem);
+                            success++;
                         }
-
-                        var trackingItem = _mapper.Map<List<TrackingDetail>>(jsonObject);
-
-                        trackingItem.ForEach(x =>
-                        {
-                            x.TrackingDetailId = Guid.NewGuid();
-                            x.TrackingBatchId = batchId;
-                            x.TrackingHeaderId = dataInsert?.TrackingHeaderId;
-                            x.Status_Date = x.Status_Date?.AddYears(-543);
-                            x.Delivery_Datetime = x.Delivery_Datetime?.AddYears(-543);
-                            x.IsActive = true;
-                            x.CreatedDate = now;
-                            x.CreatedByUserId = 1;
-                            x.UpdatedDate = now;
-                            x.UpdatedByUserId = 1;
-                        });
-                        await _dbContext.AddRangeAsync(trackingItem);
+                    }
+                    else
+                    {
+                        keyExists++;
                     }
                 }
                 _dbContext.Add(dataBatch);
 
-                Log.Debug("[UpsertTracking] - {@success}", success);
-                Log.Debug("[UpsertTracking] - SaveChangesAsync");
+                Log.Information("[UpsertTracking] - success: {@success}", success);
+                Log.Information("[UpsertTracking] - keyExists: {@keyExists}", keyExists);
+                Log.Information("[UpsertTracking] - SaveChangesAsync");
 
                 await _dbContext.SaveChangesAsync();
             }
