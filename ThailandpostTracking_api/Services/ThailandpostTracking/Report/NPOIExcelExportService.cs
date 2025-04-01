@@ -152,6 +152,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking.Report
             // Create and style header row
             var headerRow = sheet.CreateRow(0);
             int columnIndex = 0;
+            int r = 0;
             foreach (var header in headers)
             {
                 var cell = headerRow.CreateCell(columnIndex++);
@@ -167,6 +168,8 @@ namespace ThailandpostTracking.Services.ThailandpostTracking.Report
                 headerFont.IsBold = true;
                 headerStyle.SetFont(headerFont);
                 cell.CellStyle = headerStyle;
+                sheet.AutoSizeColumn(r); // Auto size columns
+                r++;
             }
             //format date
             var dateFormat = _workbook.CreateDataFormat();
@@ -235,11 +238,11 @@ namespace ThailandpostTracking.Services.ThailandpostTracking.Report
                 rowIndex++;
             }
 
-            // Auto size columns
-            for (int i = 0; i < headers.Count; i++)
-            {
-                sheet.AutoSizeColumn(i);
-            }
+            //// Auto size columns
+            //for (int i = 0; i < headers.Count; i++)
+            //{
+            //    sheet.AutoSizeColumn(i);
+            //}
 
             // Add auto-filter to the header row
             var filterRange = new CellRangeAddress(0, rowIndex - 1, 0, headers.Count - 1);
