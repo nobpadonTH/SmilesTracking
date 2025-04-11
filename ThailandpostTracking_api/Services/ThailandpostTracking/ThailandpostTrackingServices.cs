@@ -30,6 +30,7 @@ namespace ThailandpostTracking.Services.ThailandpostTracking
         {
             "TrackingCode",
             "ReferenceCode",
+            "PolicyNo",
             "สถานะ",
             "คำอธิบายสถานะ",
             "สถานะของวันที่",
