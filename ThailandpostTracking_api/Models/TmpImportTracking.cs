@@ -29,6 +29,9 @@ namespace ThailandpostTracking.Models
         public string Message { get; set; }
         public bool? IsActive { get; set; }
         public string Remark { get; set; }
+        [StringLength(100)]
+        [Unicode(false)]
+        public string PolicyNo { get; set; }
 
         [InverseProperty("TmpImportTracking")]
         public virtual TrackingHeader TrackingHeader { get; set; }

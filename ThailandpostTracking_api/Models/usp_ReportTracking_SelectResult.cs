@@ -9,6 +9,7 @@ namespace ThailandpostTracking.Models
     {
         public string TrackingCode { get; set; }
         public string ReferenceCode { get; set; }
+        public string PolicyNo { get; set; }
         public string Status { get; set; }
         public string Status_Description { get; set; }
         public DateTime? Status_Date { get; set; }
