@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Quartz;
 using ThailandpostTracking.Attributes;
 using ThailandpostTracking.DTOs.Thailandpost.Request;
 using ThailandpostTracking.DTOs.Thailandpost.Response;
@@ -14,10 +15,12 @@ namespace ThailandpostTracking.Controllers
     public class ThailandpostTrackingController : ControllerBase
     {
         private readonly IThailandpostTrackingServices _services;
+        private readonly ISchedulerFactory _schedulerFactory;
 
-        public ThailandpostTrackingController(IThailandpostTrackingServices services)
+        public ThailandpostTrackingController(IThailandpostTrackingServices services, ISchedulerFactory schedulerFactory)
         {
             _services = services;
+            _schedulerFactory = schedulerFactory;
         }
 
         /// <summary>
@@ -108,6 +111,26 @@ namespace ThailandpostTracking.Controllers
                 return File(result.Data.Data, contentType, result.Data.FileName);
 
             return Ok(result);
+        }
+
+        [HttpPost("trigger")]
+        public async Task<IActionResult> TriggerJob([FromQuery] string jobName = "SampleJob")
+        {
+            var scheduler = await _schedulerFactory.GetScheduler();
+
+            // 🟢 Ensure scheduler is started
+            if (!scheduler.IsStarted)
+                await scheduler.Start();
+
+            var jobKey = new JobKey(jobName);
+
+            if (!await scheduler.CheckExists(jobKey))
+            {
+                return NotFound($"Job '{jobName}' does not exist.");
+            }
+
+            await scheduler.TriggerJob(jobKey);
+            return Ok($"Job '{jobName}' triggered.");
         }
     }
 }
